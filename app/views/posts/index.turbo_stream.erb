@@ -1,0 +1,27 @@
+<% if @posts.any? %>
+  <%# Append new posts to the existing container %>
+  <%= turbo_stream.append "posts_page_#{params[:page].to_i - 1}" do %>
+    <%= turbo_frame_tag "posts_page_#{params[:page]}" do %>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
+        <%= render partial: "posts/post", collection: @posts %>
+      </div>
+      
+      <% if @pagy.next %>
+        <div class="mt-12 text-center">
+          <%= link_to posts_path(page: @pagy.next, category_id: params[:category_id], sort: params[:sort]), 
+              class: "inline-flex items-center px-6 py-3 border border-gray-300 shadow-sm text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50",
+              data: { turbo_frame: "posts_page_#{@pagy.next}" } do %>
+            Load more articles
+          <% end %>
+        </div>
+      <% end %>
+    <% end %>
+  <% end %>
+<% else %>
+  <%# If there are no more posts to load %>
+  <%= turbo_stream.update "posts_page_#{params[:page].to_i - 1}" do %>
+    <div class="mt-8 text-center text-gray-500">
+      No more posts to load
+    </div>
+  <% end %>
+<% end %>

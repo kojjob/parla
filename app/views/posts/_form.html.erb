@@ -1,0 +1,242 @@
+<%# posts/_form.html.erb %>
+<%= form_with(model: post, class: "form", html: { multipart: true }) do |form| %>
+  <div class="p-6 space-y-6" data-controller="post-form image-preview">
+    <% if post.errors.any? %>
+      <div class="rounded-md bg-red-50 p-4 mb-6">
+        <div class="flex">
+          <div class="flex-shrink-0">
+            <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+            </svg>
+          </div>
+          <div class="ml-3">
+            <h3 class="text-sm font-medium text-red-800">
+              <%= pluralize(post.errors.count, "error") %> prohibited this post from being saved
+            </h3>
+            <div class="mt-2 text-sm text-red-700">
+              <ul class="list-disc pl-5 space-y-1">
+                <% post.errors.each do |error| %>
+                  <li><%= error.full_message %></li>
+                <% end %>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    <% end %>
+
+    <!-- Title field -->
+    <div class="space-y-1">
+      <div class="flex items-center justify-between">
+        <%= form.label :title, class: "block text-sm font-medium text-gray-700" %>
+        <span class="text-xs text-pink-600 font-medium">Required</span>
+      </div>
+      <%= form.text_field :title,
+                          class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-pink-500 focus:ring-pink-500 sm:text-sm",
+                          placeholder: "Enter a catchy title for your post",
+                          data: { post_form_target: "title", action: "input->post-form#updateSlug" } %>
+    </div>
+
+    <!-- Slug field -->
+    <div class="space-y-1">
+      <div class="flex items-center justify-between">
+        <%= form.label :slug, "URL Slug", class: "block text-sm font-medium text-gray-700" %>
+        <span class="text-xs text-gray-500">Auto-generated from title</span>
+      </div>
+      <div class="mt-1 flex rounded-md shadow-sm">
+        <span class="inline-flex items-center rounded-l-md border border-r-0 border-gray-300 bg-gray-50 px-3 text-gray-500 text-sm">
+          <%= request.host_with_port %>/posts/
+        </span>
+        <%= form.text_field :slug,
+                            class: "block w-full flex-1 rounded-none rounded-r-md border-gray-300 focus:border-pink-500 focus:ring-pink-500 sm:text-sm",
+                            placeholder: "my-post-title",
+                            data: { post_form_target: "slug", action: "focus->post-form#slugFocused" } %>
+      </div>
+    </div>
+
+    <!-- Cover image upload -->
+    <div class="space-y-1" data-controller="image-preview">
+      <div class="flex items-center justify-between">
+        <%= form.label :cover_image, class: "block text-sm font-medium text-gray-700" %>
+        <span class="text-xs text-gray-500">Best size: 1200×600px (2:1 ratio)</span>
+      </div>
+
+      <div class="mt-1 flex justify-center rounded-md border-2 border-dashed border-gray-300 px-6 pt-5 pb-6"
+           data-image-preview-target="dropzone"
+           data-action="dragover->image-preview#preventDefaults dragenter->image-preview#preventDefaults drop->image-preview#handleDrop click->image-preview#browseFiles">
+
+        <!-- Current image preview (if exists) -->
+        <% if post.cover_image.attached? %>
+          <div class="space-y-1 text-center w-full" data-image-preview-target="previewContainer">
+            <div class="relative mx-auto overflow-hidden rounded-lg max-w-lg">
+              <%= image_tag post.cover_image.variant(resize_to_limit: [600, 300]),
+                           class: "mx-auto object-cover",
+                           data: { image_preview_target: "previewImage" } %>
+
+              <button type="button"
+                     class="absolute top-2 right-2 inline-flex items-center rounded-full border border-transparent bg-white p-1.5 text-gray-600 shadow-sm hover:bg-red-50 hover:text-red-600 focus:outline-none"
+                     data-action="click->image-preview#removeImage">
+                <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                </svg>
+              </button>
+            </div>
+            <p class="text-xs text-gray-500">Click to change image</p>
+          </div>
+        <% else %>
+          <!-- Empty state -->
+          <div class="space-y-1 text-center" data-image-preview-target="placeholder">
+            <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+              <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <div class="flex text-sm text-gray-600">
+              <p class="pl-1">Drag and drop an image here or click to select</p>
+            </div>
+            <p class="text-xs text-gray-500">PNG, JPG, GIF up to 5MB</p>
+          </div>
+
+          <!-- Hidden preview container (shown when image is selected) -->
+          <div class="hidden space-y-1 text-center w-full" data-image-preview-target="previewContainer">
+            <div class="relative mx-auto overflow-hidden rounded-lg max-w-lg">
+              <img src="" class="mx-auto object-cover" data-image-preview-target="previewImage">
+
+              <button type="button"
+                     class="absolute top-2 right-2 inline-flex items-center rounded-full border border-transparent bg-white p-1.5 text-gray-600 shadow-sm hover:bg-red-50 hover:text-red-600 focus:outline-none"
+                     data-action="click->image-preview#removeImage">
+                <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                </svg>
+              </button>
+            </div>
+            <p class="text-xs text-gray-500">Click to change image</p>
+          </div>
+        <% end %>
+
+        <%= form.file_field :cover_image,
+                           class: "hidden",
+                           accept: "image/*",
+                           data: { image_preview_target: "input", action: "change->image-preview#handleFile" } %>
+      </div>
+    </div>
+
+    <!-- Content field (using Trix editor) -->
+    <div class="space-y-1">
+      <div class="flex items-center justify-between">
+        <%= form.label :body, class: "block text-sm font-medium text-gray-700" %>
+        <span class="text-xs text-pink-600 font-medium">Required</span>
+      </div>
+      <div class="mt-1">
+        <% if defined?(form.rich_text_area) %>
+          <%= form.rich_text_area :body, class: "block w-full rounded-md border-gray-300 shadow-sm focus:border-pink-500 focus:ring-pink-500 sm:text-sm min-h-[300px]" %>
+        <% else %>
+          <%= form.text_area :body, class: "block w-full rounded-md border-gray-300 shadow-sm focus:border-pink-500 focus:ring-pink-500 sm:text-sm min-h-[300px]", placeholder: "Write your post content here..." %>
+        <% end %>
+      </div>
+    </div>
+
+    <!-- Gallery images upload -->
+    <div class="space-y-1" data-controller="gallery-upload">
+      <div class="flex items-center justify-between">
+        <label class="block text-sm font-medium text-gray-700">Gallery Images</label>
+        <span class="text-xs text-gray-500">Add multiple images to your post</span>
+      </div>
+
+      <!-- Upload area -->
+      <div class="mt-1 flex justify-center rounded-md border-2 border-dashed border-gray-300 px-6 pt-5 pb-6"
+           data-action="dragover->gallery-upload#preventDefaults dragenter->gallery-upload#preventDefaults drop->gallery-upload#handleDrop click->gallery-upload#browseFiles">
+        <div class="space-y-1 text-center">
+          <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+            <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+          <div class="flex text-sm text-gray-600">
+            <p class="pl-1">Drag and drop multiple images or click to select</p>
+          </div>
+          <p class="text-xs text-gray-500">PNG, JPG, GIF up to 5MB each</p>
+        </div>
+      </div>
+
+      <!-- Hidden file input -->
+      <input type="file" multiple accept="image/*" class="hidden" data-gallery-upload-target="input" data-action="change->gallery-upload#handleFiles">
+
+      <!-- Preview container -->
+      <div class="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4" data-gallery-upload-target="container">
+        <% if post.gallery_images.attached? %>
+          <% post.gallery_images.each do |image| %>
+            <div class="gallery-item relative rounded-lg overflow-hidden border border-gray-200 group">
+              <%= image_tag image.variant(resize_to_limit: [300, 300]), class: "w-full h-32 object-cover" %>
+              <div class="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <button type="button" class="text-white p-1 hover:text-red-500" data-action="click->gallery-upload#removeImage">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          <% end %>
+        <% end %>
+      </div>
+
+      <!-- Template for new image previews -->
+      <template data-gallery-upload-target="template">
+        <div class="gallery-item relative rounded-lg overflow-hidden border border-gray-200 group">
+          <img class="w-full h-32 object-cover">
+          <div class="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+            <button type="button" class="text-white p-1 hover:text-red-500" data-action="click->gallery-upload#removeImage">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </path>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </template>
+  </div>
+
+    <!-- Category selection -->
+    <div class="space-y-1">
+      <%= form.label :category_id, class: "block text-sm font-medium text-gray-700" %>
+      <%= form.collection_select :category_id,
+                     Category.all.order(:name), :id, :name,
+                     { include_blank: "Select a category" },
+                     { class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-pink-500 focus:ring-pink-500 sm:text-sm" } %>
+      <% if Category.none? && current_user&.admin? %>
+        <p class="text-xs text-gray-500 mt-1">
+          No categories available. <%= link_to "Create a category", new_category_path, class: "text-pink-600 hover:text-pink-800" %>
+        </p>
+      <% end %>
+    </div>
+
+    <!-- Tags input -->
+    <div class="space-y-1">
+      <div class="flex items-center justify-between">
+        <%= form.label :tag_list, "Tags", class: "block text-sm font-medium text-gray-700" %>
+        <span class="text-xs text-gray-500">Separate with commas</span>
+      </div>
+      <%= form.text_field :tag_list,
+                         value: post.respond_to?(:tag_list) ? post.tag_list&.join(", ") : "",
+                         class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-pink-500 focus:ring-pink-500 sm:text-sm",
+                         placeholder: "travel, photography, tips" %>
+    </div>
+
+    <!-- Published status -->
+    <div class="relative flex items-start">
+      <div class="flex h-5 items-center">
+        <%= form.check_box :published,
+                          class: "h-4 w-4 rounded border-gray-300 text-pink-600 focus:ring-pink-500" %>
+      </div>
+      <div class="ml-3 text-sm">
+        <%= form.label :published, "Publish this post", class: "font-medium text-gray-700" %>
+        <p class="text-gray-500">When checked, this post will be visible to all users</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Form actions -->
+  <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end space-x-3">
+    <%= link_to "Cancel", post.persisted? ? post_path(post) : posts_path,
+               class: "inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2" %>
+
+    <%= form.submit post.persisted? ? "Update Post" : "Create Post",
+                   class: "inline-flex justify-center rounded-md border border-transparent bg-pink-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2" %>
+  </div>
+<% end %>

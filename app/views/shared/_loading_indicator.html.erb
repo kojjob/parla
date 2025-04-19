@@ -1,0 +1,7 @@
+<%# Loading indicator for async content loading %>
+<div class="<%= defined?(hidden) && hidden ? 'hidden' : '' %> text-center py-8" id="<%= defined?(id) ? id : 'loading-indicator' %>">
+  <div class="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-indigo-600 border-r-transparent align-[-0.125em]" role="status">
+    <span class="sr-only">Loading...</span>
+  </div>
+  <p class="mt-2 text-gray-600"><%= message || "Loading more content..." %></p>
+</div>

@@ -1,0 +1,157 @@
+<%# Modern, sleek flash messages %>
+<% if flash.any? %>
+  <div class="flash-messages-container fixed top-4 right-4 z-50 w-full max-w-md space-y-3" id="flash-container">
+    <%
+    # Deduplicate flash messages
+    unique_messages = {}
+    flash.each do |type, message|
+      unique_messages[type.to_sym] = message
+    end
+
+    unique_messages.each do |type, message|
+    %>
+      <%
+      # Map Rails flash types to appropriate styling
+      flash_bg_color = case type.to_sym
+        when :notice, :success
+          "bg-gradient-to-r from-emerald-500 to-green-500"
+        when :alert, :error
+          "bg-gradient-to-r from-rose-500 to-red-500"
+        when :warning
+          "bg-gradient-to-r from-amber-400 to-yellow-500"
+        when :info
+          "bg-gradient-to-r from-sky-400 to-blue-500"
+        else
+          "bg-gradient-to-r from-slate-500 to-gray-600"
+        end
+
+      # Map flash types to appropriate icons
+      icon = case type.to_sym
+        when :notice, :success
+          '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+          </svg>'
+        when :alert, :error
+          '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+          </svg>'
+        when :warning
+          '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+          </svg>'
+        when :info
+          '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+          </svg>'
+        else
+          '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+          </svg>'
+        end
+      %>
+
+      <div class="flash-message animate-flash-slide-in" id="flash-<%= type %>" data-auto-dismiss="true">
+        <div class="<%= flash_bg_color %> text-white rounded-lg shadow-lg overflow-hidden">
+          <div class="relative">
+            <!-- Progress bar for auto-dismiss -->
+            <div class="absolute bottom-0 left-0 h-1 bg-white bg-opacity-30 w-full">
+              <div class="h-full bg-white animate-flash-progress"></div>
+            </div>
+
+            <div class="p-4">
+              <div class="flex items-center">
+                <div class="flex-shrink-0">
+                  <%= icon.html_safe %>
+                </div>
+                <div class="ml-3 flex-1">
+                  <p class="text-sm font-medium"><%= message %></p>
+                </div>
+                <div class="ml-auto pl-3">
+                  <div class="-mx-1.5 -my-1.5">
+                    <button type="button" onclick="dismissFlash(this)" class="inline-flex rounded-md p-1.5 text-white hover:bg-white hover:bg-opacity-10 focus:outline-none">
+                      <span class="sr-only">Dismiss</span>
+                      <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  </div>
+
+  <script>
+    // Auto-dismiss flash messages after 5 seconds
+    document.addEventListener('DOMContentLoaded', function() {
+      const flashMessages = document.querySelectorAll('[data-auto-dismiss="true"]');
+
+      flashMessages.forEach(function(flash) {
+        setTimeout(function() {
+          dismissFlash(flash.querySelector('button'));
+        }, 5000);
+      });
+    });
+
+    // Function to dismiss flash messages when close button is clicked
+    function dismissFlash(button) {
+      const flashMessage = button.closest('.flash-message');
+      flashMessage.classList.add('animate-flash-slide-out');
+
+      // Remove the element after animation completes
+      setTimeout(function() {
+        flashMessage.remove();
+
+        // Check if there are no more flash messages and remove the container
+        const container = document.getElementById('flash-container');
+        if (container && container.children.length === 0) {
+          container.remove();
+        }
+      }, 300);
+    }
+  </script>
+
+  <style>
+    @keyframes flashSlideIn {
+      0% {
+        opacity: 0;
+        transform: translateX(100%);
+      }
+      100% {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    @keyframes flashSlideOut {
+      0% {
+        opacity: 1;
+        transform: translateX(0);
+      }
+      100% {
+        opacity: 0;
+        transform: translateX(100%);
+      }
+    }
+
+    @keyframes flashProgress {
+      0% { width: 100%; }
+      100% { width: 0%; }
+    }
+
+    .animate-flash-slide-in {
+      animation: flashSlideIn 0.3s ease-out forwards;
+    }
+
+    .animate-flash-slide-out {
+      animation: flashSlideOut 0.3s ease-in forwards;
+    }
+
+    .animate-flash-progress {
+      animation: flashProgress 5s linear forwards;
+    }
+  </style>
+<% end %>

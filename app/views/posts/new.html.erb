@@ -1,0 +1,38 @@
+<%# posts/new.html.erb %>
+<% content_for :title, "Create New Post" %>
+
+<div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="max-w-3xl mx-auto">
+    <!-- Breadcrumbs -->
+    <nav class="mb-6 text-sm" aria-label="Breadcrumb">
+      <ol class="flex items-center space-x-2">
+        <li>
+          <%= link_to "Home", root_path, class: "text-gray-500 hover:text-gray-700" %>
+        </li>
+        <li class="flex items-center">
+          <svg class="h-4 w-4 text-gray-400" viewBox="0 0 16 16" fill="currentColor">
+            <path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/>
+          </svg>
+          <%= link_to "Posts", posts_path, class: "ml-2 text-gray-500 hover:text-gray-700" %>
+        </li>
+        <li class="flex items-center">
+          <svg class="h-4 w-4 text-gray-400" viewBox="0 0 16 16" fill="currentColor">
+            <path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/>
+          </svg>
+          <span class="ml-2 text-gray-900 font-medium">New Post</span>
+        </li>
+      </ol>
+    </nav>
+
+    <!-- Page header -->
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold text-gray-900">Create New Post</h1>
+      <p class="mt-2 text-sm text-gray-600">Share your ideas, stories, and insights with the world.</p>
+    </div>
+
+    <!-- Card container for the form -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+      <%= render 'form', post: @post %>
+    </div>
+  </div>
+</div>

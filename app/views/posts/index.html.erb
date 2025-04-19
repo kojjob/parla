@@ -1,0 +1,439 @@
+<% content_for :title, "Parla - News & Articles" %>
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+  <%# Main header section %>
+  <div class="border-b border-gray-200 py-4 flex items-center justify-between">
+    <h1 class="text-3xl font-bold text-gray-900">The Latest</h1>
+
+    <% if user_signed_in? %>
+      <%= link_to new_post_path, class: "inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" do %>
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+        </svg>
+        New Post
+      <% end %>
+    <% end %>
+  </div>
+
+  <%# Featured / Top stories section %>
+  <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+    <%# Main featured story - left column, spans 2 rows %>
+    <% main_post = @posts.joins("LEFT JOIN active_storage_attachments ON active_storage_attachments.record_id = posts.id AND active_storage_attachments.record_type = 'Post' AND active_storage_attachments.name = 'cover_image'").where.not(active_storage_attachments: { id: nil }).order(created_at: :desc).first || @posts.first %>
+    <% if main_post.present? %>
+      <div class="col-span-1 md:col-span-2 row-span-1 md:row-span-2">
+        <%= link_to main_post, class: "block group" do %>
+          <div class="relative h-96 overflow-hidden rounded-lg">
+            <% if main_post.cover_image.attached? %>
+              <%= image_tag main_post.cover_image.variant(resize_to_fill: [800, 600]), class: "w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300" %>
+            <% else %>
+              <div class="w-full h-full bg-gradient-to-br from-blue-500 to-indigo-600"></div>
+            <% end %>
+            <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent"></div>
+
+            <div class="absolute bottom-0 left-0 p-6 text-white">
+              <% if main_post.category.present? %>
+                <span class="inline-block px-2 py-1 text-xs font-medium rounded bg-blue-600 text-white mb-3">
+                  <%= main_post.category.name %>
+                </span>
+              <% end %>
+              <h2 class="text-2xl font-bold leading-tight mb-2 group-hover:underline"><%= main_post.title %></h2>
+              <p class="text-sm text-gray-200 line-clamp-2"><%= strip_tags(main_post.body.to_s).truncate(150) %></p>
+
+              <div class="flex items-center mt-4 text-sm">
+                <span class="text-gray-300"><%= time_ago_in_words(main_post.created_at) %> ago</span>
+                <% if main_post.user.present? %>
+                  <span class="mx-2">•</span>
+                  <span class="text-gray-300">By <%= main_post.user.respond_to?(:name) ? main_post.user.name : "Staff" %></span>
+                <% end %>
+                <% if main_post.respond_to?(:comments_count) && main_post.comments_count.present? && main_post.comments_count > 0 %>
+                  <span class="mx-2">•</span>
+                  <span class="text-gray-300"><%= pluralize(main_post.comments_count, 'comment') %></span>
+                <% end %>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+
+    <%# Right column top stories - 2 smaller stories %>
+    <div class="col-span-1 space-y-6">
+      <% @posts.where.not(id: main_post&.id).order(created_at: :desc).limit(2).each do |post| %>
+        <%= link_to post, class: "block group" do %>
+          <div class="relative h-44 overflow-hidden rounded-lg">
+            <% if post.cover_image.attached? %>
+              <%= image_tag post.cover_image.variant(resize_to_fill: [400, 300]), class: "w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300" %>
+            <% else %>
+              <div class="w-full h-full bg-gradient-to-br from-purple-500 to-pink-600"></div>
+            <% end %>
+            <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent"></div>
+
+            <div class="absolute bottom-0 left-0 p-4 text-white">
+              <% if post.category.present? %>
+                <span class="inline-block px-1.5 py-0.5 text-xs font-medium rounded bg-blue-600 text-white mb-2">
+                  <%= post.category.name %>
+                </span>
+              <% end %>
+              <h3 class="text-lg font-bold leading-tight mb-1 group-hover:underline"><%= post.title %></h3>
+
+              <div class="flex items-center mt-2 text-xs">
+                <span class="text-gray-300"><%= time_ago_in_words(post.created_at) %> ago</span>
+                <% if post.respond_to?(:comments_count) && post.comments_count.present? && post.comments_count > 0 %>
+                  <span class="mx-2">•</span>
+                  <span class="text-gray-300"><%= pluralize(post.comments_count, 'comment') %></span>
+                <% end %>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+
+  <%# Mid-page featured stories ribbon %>
+  <div class="my-8 pt-8 border-t border-gray-200">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-xl font-bold text-gray-900">Most Popular</h2>
+      <%= link_to "#", class: "text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline" do %>
+        View all <span class="ml-1">→</span>
+      <% end %>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      <% @posts.order(created_at: :desc).offset(3).limit(4).each do |post| %>
+        <%= link_to post, class: "block group" do %>
+          <div class="h-40 overflow-hidden rounded-lg mb-2">
+            <% if post.cover_image.attached? %>
+              <%= image_tag post.cover_image.variant(resize_to_fill: [300, 200]), class: "w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300" %>
+            <% else %>
+              <div class="w-full h-full bg-gradient-to-br from-gray-500 to-gray-700"></div>
+            <% end %>
+          </div>
+          <h3 class="font-medium leading-tight group-hover:text-blue-600 group-hover:underline"><%= post.title %></h3>
+          <div class="mt-1 flex items-center text-xs text-gray-500">
+            <span><%= time_ago_in_words(post.created_at) %> ago</span>
+            <% if post.respond_to?(:comments_count) && post.comments_count.present? && post.comments_count > 0 %>
+              <span class="mx-1">•</span>
+              <span><%= pluralize(post.comments_count, 'comment') %></span>
+            <% end %>
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+
+  <%# Advertisement banner %>
+  <div class="my-8 py-6 bg-gray-100 rounded-lg text-center">
+    <div class="px-4">
+      <div class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-1">Advertisement</div>
+      <div class="max-w-4xl mx-auto h-20 bg-gray-200 rounded flex items-center justify-center">
+        <span class="text-gray-400">Advertisement Banner</span>
+      </div>
+    </div>
+  </div>
+
+  <%# Main content section - 3 columns layout %>
+  <div class="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <%# Left column - U.S. News %>
+    <div>
+      <div class="border-b border-gray-200 pb-3 mb-6">
+        <h2 class="text-xl font-bold">U.S. News</h2>
+      </div>
+
+      <% @posts.joins(:category).where(categories: { name: 'Politics' }).or(@posts.joins(:category).where(categories: { name: 'USA' })).limit(4).each_with_index do |post, index| %>
+        <% if index == 0 %>
+          <%= link_to post, class: "block group mb-6" do %>
+            <div class="relative h-52 overflow-hidden rounded-lg mb-3">
+              <% if post.cover_image.attached? %>
+                <%= image_tag post.cover_image.variant(resize_to_fill: [400, 300]), class: "w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300" %>
+              <% else %>
+                <div class="w-full h-full bg-gradient-to-br from-blue-500 to-indigo-600"></div>
+              <% end %>
+            </div>
+            <h3 class="font-bold leading-snug group-hover:text-blue-600 group-hover:underline"><%= post.title %></h3>
+            <p class="mt-1 text-sm text-gray-600 line-clamp-2"><%= strip_tags(post.body.to_s).truncate(100) %></p>
+            <div class="mt-2 text-xs text-gray-500">
+              <%= time_ago_in_words(post.created_at) %> ago
+              <% if post.respond_to?(:comments_count) && post.comments_count.present? && post.comments_count > 0 %>
+                <span class="mx-1">•</span>
+                <span><%= pluralize(post.comments_count, 'comment') %></span>
+              <% end %>
+            </div>
+          <% end %>
+        <% else %>
+          <%= link_to post, class: "flex items-start group py-3 border-t border-gray-100" do %>
+            <% if post.cover_image.attached? %>
+              <div class="flex-shrink-0 w-20 h-16 rounded overflow-hidden">
+                <%= image_tag post.cover_image.variant(resize_to_fill: [100, 80]), class: "w-full h-full object-cover object-center" %>
+              </div>
+            <% end %>
+            <div class="<%= post.cover_image.attached? ? 'ml-3' : '' %> flex-1">
+              <h3 class="text-sm font-medium leading-snug group-hover:text-blue-600 group-hover:underline"><%= post.title %></h3>
+              <div class="mt-1 text-xs text-gray-500">
+                <%= time_ago_in_words(post.created_at) %> ago
+              </div>
+            </div>
+          <% end %>
+        <% end %>
+      <% end %>
+    </div>
+
+    <%# Middle column - World News %>
+    <div>
+      <div class="border-b border-gray-200 pb-3 mb-6">
+        <h2 class="text-xl font-bold">World News</h2>
+      </div>
+
+      <% @posts.joins(:category).where(categories: { name: 'World' }).or(@posts.joins(:category).where(categories: { name: 'International' })).limit(4).each_with_index do |post, index| %>
+        <% if index == 0 %>
+          <%= link_to post, class: "block group mb-6" do %>
+            <div class="relative h-52 overflow-hidden rounded-lg mb-3">
+              <% if post.cover_image.attached? %>
+                <%= image_tag post.cover_image.variant(resize_to_fill: [400, 300]), class: "w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300" %>
+              <% else %>
+                <div class="w-full h-full bg-gradient-to-br from-green-500 to-teal-600"></div>
+              <% end %>
+            </div>
+            <h3 class="font-bold leading-snug group-hover:text-blue-600 group-hover:underline"><%= post.title %></h3>
+            <p class="mt-1 text-sm text-gray-600 line-clamp-2"><%= strip_tags(post.body.to_s).truncate(100) %></p>
+            <div class="mt-2 text-xs text-gray-500">
+              <%= time_ago_in_words(post.created_at) %> ago
+              <% if post.respond_to?(:comments_count) && post.comments_count.present? && post.comments_count > 0 %>
+                <span class="mx-1">•</span>
+                <span><%= pluralize(post.comments_count, 'comment') %></span>
+              <% end %>
+            </div>
+          <% end %>
+        <% else %>
+          <%= link_to post, class: "flex items-start group py-3 border-t border-gray-100" do %>
+            <% if post.cover_image.attached? %>
+              <div class="flex-shrink-0 w-20 h-16 rounded overflow-hidden">
+                <%= image_tag post.cover_image.variant(resize_to_fill: [100, 80]), class: "w-full h-full object-cover object-center" %>
+              </div>
+            <% end %>
+            <div class="<%= post.cover_image.attached? ? 'ml-3' : '' %> flex-1">
+              <h3 class="text-sm font-medium leading-snug group-hover:text-blue-600 group-hover:underline"><%= post.title %></h3>
+              <div class="mt-1 text-xs text-gray-500">
+                <%= time_ago_in_words(post.created_at) %> ago
+              </div>
+            </div>
+          <% end %>
+        <% end %>
+      <% end %>
+    </div>
+
+    <%# Right column - Featured story + sidebar %>
+    <div class="lg:flex lg:flex-col">
+      <%# Featured story box %>
+      <% featured_post = @posts.where("title LIKE ?", "%COVID%").or(@posts.where("title LIKE ?", "%featured%")).first || @posts.order(created_at: :desc).first %>
+      <% if featured_post.present? %>
+        <div class="mb-8 rounded-lg overflow-hidden border border-gray-200">
+          <div class="p-5 bg-gray-50">
+            <h2 class="text-lg font-bold">Featured Story</h2>
+          </div>
+          <%= link_to featured_post, class: "block group" do %>
+            <% if featured_post.cover_image.attached? %>
+              <div class="relative h-48 overflow-hidden">
+                <%= image_tag featured_post.cover_image.variant(resize_to_fill: [500, 300]), class: "w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300" %>
+              </div>
+            <% end %>
+            <div class="p-5">
+              <h3 class="font-bold leading-tight text-lg group-hover:text-blue-600 group-hover:underline">
+                <%= featured_post.title %>
+              </h3>
+              <p class="mt-2 text-sm text-gray-600 line-clamp-3">
+                <%= strip_tags(featured_post.body.to_s).truncate(150) %>
+              </p>
+              <div class="mt-4 text-xs text-gray-500 flex items-center">
+                <span><%= time_ago_in_words(featured_post.created_at) %> ago</span>
+                <% if featured_post.respond_to?(:comments_count) && featured_post.comments_count.present? && featured_post.comments_count > 0 %>
+                  <span class="mx-1">•</span>
+                  <span><%= pluralize(featured_post.comments_count, 'comment') %></span>
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+
+      <%# Recent categories sidebar %>
+      <div class="border border-gray-200 rounded-lg overflow-hidden">
+        <div class="p-4 bg-gray-50 border-b border-gray-200">
+          <h2 class="font-bold">Categories</h2>
+        </div>
+
+        <div class="p-4">
+          <ul class="space-y-3">
+            <% Category.order(posts_count: :desc).limit(5).each do |category| %>
+              <li>
+                <%= link_to category_posts_path(category), class: "flex items-center justify-between group" do %>
+                  <span class="text-sm group-hover:text-blue-600 group-hover:underline"><%= category.name %></span>
+                  <span class="text-xs px-2 py-1 bg-gray-100 rounded-full text-gray-500">
+                    <%= category.posts_count || 0 %>
+                  </span>
+                <% end %>
+              </li>
+            <% end %>
+          </ul>
+
+          <div class="mt-4 pt-4 border-t border-gray-100">
+            <%= link_to categories_path, class: "inline-block text-sm text-blue-600 hover:text-blue-800 hover:underline font-medium" do %>
+              View all categories <span class="ml-1">→</span>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <%# Business section %>
+  <div class="mt-12 pt-8 border-t border-gray-200">
+    <div class="flex items-center justify-between mb-6">
+      <h2 class="text-xl font-bold">Business</h2>
+      <%= link_to "#", class: "text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline" do %>
+        More business news <span class="ml-1">→</span>
+      <% end %>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <% @posts.joins(:category).where(categories: { name: 'Business' }).or(@posts.joins(:category).where(categories: { name: 'Economy' })).limit(3).each do |post| %>
+        <%= link_to post, class: "block group" do %>
+          <div class="h-52 overflow-hidden rounded-lg mb-3">
+            <% if post.cover_image.attached? %>
+              <%= image_tag post.cover_image.variant(resize_to_fill: [400, 300]), class: "w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300" %>
+            <% else %>
+              <div class="w-full h-full bg-gradient-to-br from-yellow-500 to-red-500"></div>
+            <% end %>
+          </div>
+          <h3 class="font-bold leading-tight group-hover:text-blue-600 group-hover:underline"><%= post.title %></h3>
+          <p class="mt-2 text-sm text-gray-600 line-clamp-2"><%= strip_tags(post.body.to_s).truncate(100) %></p>
+          <div class="mt-2 text-xs text-gray-500">
+            <%= time_ago_in_words(post.created_at) %> ago
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+
+  <%# Sports section %>
+  <div class="mt-12 pt-8 border-t border-gray-200">
+    <div class="flex items-center justify-between mb-6">
+      <h2 class="text-xl font-bold">Sports</h2>
+      <%= link_to "#", class: "text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline" do %>
+        More sports news <span class="ml-1">→</span>
+      <% end %>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <% @posts.joins(:category).where(categories: { name: 'Sports' }).limit(4).each do |post| %>
+        <%= link_to post, class: "block group" do %>
+          <div class="h-40 overflow-hidden rounded-lg mb-2">
+            <% if post.cover_image.attached? %>
+              <%= image_tag post.cover_image.variant(resize_to_fill: [300, 200]), class: "w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300" %>
+            <% else %>
+              <div class="w-full h-full bg-gradient-to-br from-green-500 to-emerald-600"></div>
+            <% end %>
+          </div>
+          <h3 class="text-sm font-medium leading-tight group-hover:text-blue-600 group-hover:underline"><%= post.title %></h3>
+          <div class="mt-1 text-xs text-gray-500">
+            <%= time_ago_in_words(post.created_at) %> ago
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+
+  <%# Bottom advertisement banner %>
+  <div class="my-8 py-6 bg-gray-100 rounded-lg text-center">
+    <div class="px-4">
+      <div class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-1">Advertisement</div>
+      <div class="max-w-4xl mx-auto h-20 bg-gray-200 rounded flex items-center justify-center">
+        <span class="text-gray-400">Advertisement Banner</span>
+      </div>
+    </div>
+  </div>
+
+  <%# Load more posts section %>
+  <div class="mt-12 text-center">
+    <%= link_to posts_path(page: 2),
+        class: "inline-flex items-center px-6 py-3 border border-gray-300 shadow-sm text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50",
+        data: { turbo_frame: "posts_page_2" } do %>
+      Load more articles
+    <% end %>
+  </div>
+
+  <%# Turbo frame for pagination %>
+  <%= turbo_frame_tag "posts_page_2" %>
+</div>
+
+<%# Add required CSS for line clamping %>
+<% content_for :head do %>
+  <style>
+    .line-clamp-2 {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .line-clamp-3 {
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+  </style>
+<% end %>
+
+<%# Create a Stimulus controller for handling infinite scroll %>
+<% content_for :javascript do %>
+  <script type="module">
+    import { Controller } from "@hotwired/stimulus"
+
+    // Infinite scroll controller for loading more posts
+    class InfiniteScrollController extends Controller {
+      static targets = ["container"]
+      static values = { page: Number, loading: Boolean }
+
+      connect() {
+        this.loadingValue = false
+        this.intersectionObserver = new IntersectionObserver(entries => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting && !this.loadingValue) {
+              this.loadMore()
+            }
+          })
+        })
+
+        // Start observing the load more button
+        const loadMoreButton = document.querySelector("[data-turbo-frame='posts_page_2']")
+        if (loadMoreButton) {
+          this.intersectionObserver.observe(loadMoreButton)
+        }
+      }
+
+      disconnect() {
+        this.intersectionObserver.disconnect()
+      }
+
+      loadMore() {
+        this.loadingValue = true
+        const nextPage = this.pageValue + 1
+
+        fetch(`/posts?page=${nextPage}`, {
+          headers: {
+            "Accept": "text/vnd.turbo-stream.html"
+          }
+        })
+        .then(response => response.text())
+        .then(html => {
+          Turbo.renderStreamMessage(html)
+          this.pageValue = nextPage
+          this.loadingValue = false
+        })
+      }
+    }
+
+    window.InfiniteScrollController = InfiniteScrollController
+  </script>
+<% end %>
