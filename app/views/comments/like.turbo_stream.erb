@@ -1,0 +1,9 @@
+<% if @comment.parent_id.nil? %>
+  <%= turbo_stream.replace "comment_#{@comment.id}" do %>
+    <%= render "comments/comment", comment: @comment %>
+  <% end %>
+<% else %>
+  <%= turbo_stream.replace "comment_#{@comment.id}" do %>
+    <%= render "comments/reply", comment: @comment %>
+  <% end %>
+<% end %>

@@ -32,7 +32,7 @@
         <span class="text-xs text-pink-600 font-medium">Required</span>
       </div>
       <%= form.text_field :title,
-                          class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-pink-500 focus:ring-pink-500 sm:text-sm",
+                          class: "py-2 px-3 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-pink-500 focus:ring-pink-500 sm:text-sm",
                           placeholder: "Enter a catchy title for your post",
                           data: { post_form_target: "title", action: "input->post-form#updateSlug" } %>
     </div>
@@ -48,7 +48,7 @@
           <%= request.host_with_port %>/posts/
         </span>
         <%= form.text_field :slug,
-                            class: "block w-full flex-1 rounded-none rounded-r-md border-gray-300 focus:border-pink-500 focus:ring-pink-500 sm:text-sm",
+                            class: "py-2 px-3 block w-full flex-1 rounded-none rounded-r-md border-gray-300 focus:border-pink-500 focus:ring-pink-500 sm:text-sm",
                             placeholder: "my-post-title",
                             data: { post_form_target: "slug", action: "focus->post-form#slugFocused" } %>
       </div>
@@ -127,7 +127,7 @@
       </div>
       <div class="mt-1">
         <% if defined?(form.rich_text_area) %>
-          <%= form.rich_text_area :body, class: "block w-full rounded-md border-gray-300 shadow-sm focus:border-pink-500 focus:ring-pink-500 sm:text-sm min-h-[300px]" %>
+          <%= form.rich_text_area :body, class: "py-2 px-3 block w-full rounded-md border-gray-300 shadow-sm focus:border-pink-500 focus:ring-pink-500 sm:text-sm min-h-[300px]" %>
         <% else %>
           <%= form.text_area :body, class: "block w-full rounded-md border-gray-300 shadow-sm focus:border-pink-500 focus:ring-pink-500 sm:text-sm min-h-[300px]", placeholder: "Write your post content here..." %>
         <% end %>
@@ -195,28 +195,157 @@
     <!-- Category selection -->
     <div class="space-y-1">
       <%= form.label :category_id, class: "block text-sm font-medium text-gray-700" %>
-      <%= form.collection_select :category_id,
-                     Category.all.order(:name), :id, :name,
-                     { include_blank: "Select a category" },
-                     { class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-pink-500 focus:ring-pink-500 sm:text-sm" } %>
-      <% if Category.none? && current_user&.admin? %>
-        <p class="text-xs text-gray-500 mt-1">
-          No categories available. <%= link_to "Create a category", new_category_path, class: "text-pink-600 hover:text-pink-800" %>
-        </p>
+
+      <% if Category.any? %>
+        <div class="mt-3 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+          <% Category.all.order(:name).each do |category| %>
+            <div class="relative">
+              <label for="category_<%= category.id %>" class="flex items-center p-3 border rounded-md cursor-pointer hover:bg-gray-50 <%= post.category_id == category.id ? 'border-pink-500 bg-pink-50' : 'border-gray-300' %>">
+                <div class="h-8 w-8 rounded-full flex items-center justify-center text-white mr-3" style="background-color: <%= category.color %>">
+                  <% if category.respond_to?(:icon) && category.icon.present? && category.icon_emoji %>
+                    <span class="text-lg"><%= category.icon_emoji %></span>
+                  <% else %>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd" d="M17.707 9.293a1 1 0 010 1.414l-7 7a1 1 0 01-1.414 0l-7-7A.997.997 0 012 10V5a3 3 0 013-3h5c.256 0 .512.098.707.293l7 7zM5 6a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+                    </svg>
+                  <% end %>
+                </div>
+                <div class="flex-1">
+                  <span class="block text-sm font-medium text-gray-900"><%= category.name %></span>
+                  <% if category.description.present? %>
+                    <span class="block text-xs text-gray-500 truncate"><%= truncate(category.description, length: 60) %></span>
+                  <% end %>
+                </div>
+                <%= form.radio_button :category_id, category.id, id: "category_#{category.id}", class: "hidden" %>
+                <% if post.category_id == category.id %>
+                  <div class="absolute top-2 right-2 h-5 w-5 text-pink-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                    </svg>
+                  </div>
+                <% end %>
+              </label>
+            </div>
+          <% end %>
+        </div>
+      <% else %>
+        <%= form.collection_select :category_id,
+                       Category.all.order(:name), :id, :name,
+                       { include_blank: "Select a category" },
+                       { class: "py-2 px-3 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-pink-500 focus:ring-pink-500 sm:text-sm" } %>
+        <% if current_user&.admin? %>
+          <p class="text-xs text-gray-500 mt-1">
+            No categories available. <%= link_to "Create a category", new_category_path, class: "text-pink-600 hover:text-pink-800" %>
+          </p>
+        <% end %>
       <% end %>
     </div>
 
     <!-- Tags input -->
     <div class="space-y-1">
       <div class="flex items-center justify-between">
-        <%= form.label :tag_list, "Tags", class: "block text-sm font-medium text-gray-700" %>
+        <%= form.label :tags, "Tags", class: "block text-sm font-medium text-gray-700" %>
         <span class="text-xs text-gray-500">Separate with commas</span>
       </div>
-      <%= form.text_field :tag_list,
-                         value: post.respond_to?(:tag_list) ? post.tag_list&.join(", ") : "",
-                         class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-pink-500 focus:ring-pink-500 sm:text-sm",
-                         placeholder: "travel, photography, tips" %>
+      <div class="relative">
+        <%= form.text_field :tags,
+                           value: post.tags,
+                           class: "py-2 px-3 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-pink-500 focus:ring-pink-500 sm:text-sm",
+                           placeholder: "travel, photography, tips",
+                           id: "post_tags_input" %>
+
+        <div id="tags-container" class="mt-2 flex flex-wrap gap-2"></div>
+
+        <% if Post.popular_tags(8).any? %>
+          <div class="mt-3">
+            <p class="text-xs text-gray-500 mb-1">Popular tags:</p>
+            <div class="flex flex-wrap gap-1">
+              <% Post.popular_tags(8).each do |tag| %>
+                <button type="button"
+                        class="text-xs px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded-full text-gray-700 transition-colors tag-suggestion"
+                        data-tag="<%= tag %>">
+                  <%= tag %>
+                </button>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+      </div>
     </div>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        const tagsInput = document.getElementById('post_tags_input');
+        const tagsContainer = document.getElementById('tags-container');
+        const tagSuggestions = document.querySelectorAll('.tag-suggestion');
+
+        // Function to render tags
+        function renderTags() {
+          if (!tagsInput || !tagsContainer) return;
+
+          const tagsValue = tagsInput.value;
+          tagsContainer.innerHTML = '';
+
+          if (!tagsValue) return;
+
+          const tags = tagsValue.split(',').map(tag => tag.trim()).filter(tag => tag);
+
+          tags.forEach(tag => {
+            const tagElement = document.createElement('span');
+            tagElement.className = 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-pink-100 text-pink-800';
+            tagElement.innerHTML = `
+              ${tag}
+              <button type="button" class="ml-1.5 inline-flex items-center justify-center h-4 w-4 rounded-full text-pink-400 hover:text-pink-600 focus:outline-none" data-tag="${tag}">
+                <svg class="h-2 w-2" stroke="currentColor" fill="none" viewBox="0 0 8 8">
+                  <path stroke-linecap="round" stroke-width="1.5" d="M1 1l6 6m0-6L1 7" />
+                </svg>
+              </button>
+            `;
+
+            // Add click handler to remove tag
+            const removeButton = tagElement.querySelector('button');
+            removeButton.addEventListener('click', function() {
+              const tagToRemove = this.getAttribute('data-tag');
+              const currentTags = tagsInput.value.split(',').map(t => t.trim());
+              const newTags = currentTags.filter(t => t !== tagToRemove).join(', ');
+              tagsInput.value = newTags;
+              renderTags();
+            });
+
+            tagsContainer.appendChild(tagElement);
+          });
+        }
+
+        // Initial render
+        renderTags();
+
+        // Update on input change
+        if (tagsInput) {
+          tagsInput.addEventListener('input', renderTags);
+          tagsInput.addEventListener('blur', function() {
+            // Clean up the input value on blur
+            const tags = this.value.split(',').map(tag => tag.trim()).filter(tag => tag);
+            this.value = tags.join(', ');
+            renderTags();
+          });
+        }
+
+        // Add tag suggestion functionality
+        tagSuggestions.forEach(button => {
+          button.addEventListener('click', function() {
+            const tagToAdd = this.getAttribute('data-tag');
+            const currentTags = tagsInput.value ? tagsInput.value.split(',').map(t => t.trim()) : [];
+
+            // Only add if not already present
+            if (!currentTags.includes(tagToAdd)) {
+              currentTags.push(tagToAdd);
+              tagsInput.value = currentTags.join(', ');
+              renderTags();
+            }
+          });
+        });
+      });
+    </script>
 
     <!-- Published status -->
     <div class="relative flex items-start">

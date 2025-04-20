@@ -37,4 +37,59 @@ module ApplicationHelper
   def active_class(path)
     current_page?(path) ? 'active' : ''
   end
+
+  # Check if the current user is an admin
+  def user_is_admin?
+    begin
+      # Use a safer check for authentication
+      return false unless defined?(current_user) && current_user
+
+      # Use Devise's current_user helper
+      current_user.respond_to?(:admin?) && current_user.admin?
+    rescue => e
+      Rails.logger.error("Error checking admin status: #{e.message}")
+      false
+    end
+  end
+
+  # Check if a user can moderate comments
+  def can_moderate_comment?(comment)
+    begin
+      # Use a safer check for authentication
+      return false unless safely_signed_in?
+
+      # If current_user is available, check permissions
+      if defined?(current_user) && current_user
+        return (current_user.respond_to?(:admin?) && current_user.admin?) ||
+               (current_user.id == comment.user_id)
+      end
+
+      # If we can't determine permissions, default to false
+      false
+    rescue => e
+      Rails.logger.error("Error checking comment moderation: #{e.message}")
+      false
+    end
+  end
+
+  # Safer version of user_signed_in? that doesn't rely on Warden
+  def safely_signed_in?
+    begin
+      # First try to use Devise's user_signed_in? helper
+      return user_signed_in? if defined?(user_signed_in?)
+
+      # Then try to check if current_user is defined and present
+      return true if defined?(current_user) && current_user.present?
+
+      # If all else fails, check the session directly
+      return true if session[:user_id].present? || (session["warden.user.user.key"].present? rescue false)
+
+      # If that fails, return false safely
+      false
+    rescue => e
+      # Log the error but don't crash
+      Rails.logger.error("Error in safely_signed_in?: #{e.message}")
+      false
+    end
+  end
 end

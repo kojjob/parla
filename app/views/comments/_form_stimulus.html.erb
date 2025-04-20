@@ -1,0 +1,97 @@
+<%= form_with(model: [post, comment],
+              url: comment.new_record? ? post_comments_path(post) : comment_path(comment),
+              class: "comment-form",
+              id: comment.new_record? ? (parent ? "reply-form-#{parent.id}-form" : "new_comment_form") : "edit_comment_#{comment.id}_form",
+              data: { controller: "comments" }) do |form| %>
+  <% if comment.errors.any? %>
+    <div class="bg-red-50 text-red-500 p-3 rounded-md mb-4">
+      <h2 class="text-sm font-medium"><%= pluralize(comment.errors.count, "error") %> prohibited this comment from being saved:</h2>
+      <ul class="list-disc list-inside mt-1 text-xs">
+        <% comment.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <% if parent %>
+    <%= form.hidden_field :parent_id, value: parent.id %>
+  <% end %>
+
+  <div class="mb-4">
+    <div class="flex items-center justify-between mb-2">
+      <div class="flex items-center space-x-2">
+        <button type="button" class="text-xs px-2 py-1 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors content-type-btn active" data-type="text" data-comments-target="contentType">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M18 13V5a2 2 0 00-2-2H4a2 2 0 00-2 2v8a2 2 0 002 2h3l3 3 3-3h3a2 2 0 002-2zM5 7a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1zm1 3a1 1 0 100 2h3a1 1 0 100-2H6z" clip-rule="evenodd" />
+          </svg>
+        </button>
+        <button type="button" class="text-xs px-2 py-1 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors content-type-btn" data-type="image" data-comments-target="contentType">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd" />
+          </svg>
+        </button>
+        <button type="button" class="text-xs px-2 py-1 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors content-type-btn" data-type="video" data-comments-target="contentType">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z" />
+          </svg>
+        </button>
+        <button type="button" class="text-xs px-2 py-1 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors content-type-btn" data-type="gif" data-comments-target="contentType">
+          <span class="font-medium">GIF</span>
+        </button>
+        <button type="button" class="text-xs px-2 py-1 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors emoji-btn" data-action="click->comments#toggleEmojiPicker">
+          <span class="text-lg">😀</span>
+        </button>
+      </div>
+
+      <% if parent %>
+        <button type="button" class="text-xs text-gray-500 hover:text-gray-700 cancel-reply-btn" data-comment-id="<%= parent.id %>">
+          Cancel
+        </button>
+      <% end %>
+    </div>
+
+    <%= form.hidden_field :content_type, value: "text", id: "content_type_field", data: { comments_target: "contentTypeField" } %>
+
+    <div id="text-content-container" class="content-container" data-comments-target="contentContainer">
+      <%= form.text_area :content, rows: parent ? 2 : 3, class: "py-2 w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500", placeholder: "Write your comment here...", data: { comments_target: "textContent" } %>
+    </div>
+
+    <div id="rich-content-container" class="content-container hidden" data-comments-target="contentContainer">
+      <%= form.rich_text_area :rich_content, class: "py-2 px-3 w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500", placeholder: "Write your comment with formatting..." %>
+    </div>
+
+    <div id="image-content-container" class="content-container hidden" data-comments-target="contentContainer">
+      <div class="mt-2">
+        <%= form.file_field :image, class: "block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100", accept: "image/*" %>
+        <p class="mt-1 text-xs text-gray-500">Upload an image (JPG, PNG, GIF)</p>
+      </div>
+    </div>
+
+    <div id="video-content-container" class="content-container hidden" data-comments-target="contentContainer">
+      <div class="mt-2">
+        <%= form.file_field :video, class: "block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100", accept: "video/*" %>
+        <p class="mt-1 text-xs text-gray-500">Upload a video (MP4, WebM, Ogg)</p>
+      </div>
+    </div>
+
+    <div id="gif-content-container" class="content-container hidden" data-comments-target="contentContainer">
+      <div class="mt-2">
+        <%= form.file_field :gif, class: "block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100", accept: "image/gif" %>
+        <p class="mt-1 text-xs text-gray-500">Upload a GIF</p>
+      </div>
+    </div>
+
+    <div id="emoji-picker-container" class="hidden mt-2 p-2 bg-white border border-gray-200 rounded-md shadow-lg" data-comments-target="emojiPicker">
+      <div class="grid grid-cols-8 gap-1">
+        <% %w[😀 😃 😄 😁 😆 😅 😂 🤣 😊 😇 🙂 🙃 😉 😌 😍 🥰 😘 😗 😙 😚 😋 😛 😝 😜 🤪 🤨 🧐 🤓 😎 🤩 🥳 😏 😒 😞 😔 😟 😕 🙁 ☹️ 😣 😖 😫 😩 🥺 😢 😭 😤 😠 😡 🤬 🤯 😳 🥵 🥶 😱 😨 😰 😥 😓 🤗 🤔 🤭 🤫 🤥 😶 😐 😑 😬 🙄 😯 😦 😧 😮 😲 🥱 😴 🤤 😪 😵 🤐 🥴 🤢 🤮 🤧 😷 🤒 🤕 🤑 🤠 😈 👿 👹 👺 🤡 💩 👻 💀 ☠️ 👽 👾 🤖 🎃 😺 😸 😹 😻 😼 😽 🙀 😿 😾].each do |emoji| %>
+          <button type="button" class="emoji-pick-btn w-8 h-8 text-xl hover:bg-gray-100 rounded" data-emoji="<%= emoji %>" data-action="click->comments#insertEmoji"><%= emoji %></button>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <div class="flex justify-end">
+    <%= form.submit comment.new_record? ? (parent ? "Reply" : "Post Comment") : "Update Comment", class: "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" %>
+  </div>
+<% end %>

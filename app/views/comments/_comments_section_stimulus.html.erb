@@ -1,0 +1,72 @@
+<div class="comments-section mb-12" data-controller="comments">
+  <div class="flex items-center justify-between mb-6">
+    <h2 class="text-2xl font-bold text-gray-900">Comments (<span id="comments-count"><%= @post.comments.approved.count %></span>)</h2>
+
+    <div class="flex items-center space-x-4">
+      <% if @post.comments.any? %>
+        <div class="relative">
+          <select id="comment-sort" class="block pl-3 pr-10 py-2 text-sm border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-md"
+                  onchange="window.location.href = '<%= post_path(@post) %>?comment_sort=' + this.value + '&comment_filter=<%= @comment_filter %>'">
+            <option value="newest" <%= @comment_sort == 'newest' ? 'selected' : '' %>>Newest</option>
+            <option value="oldest" <%= @comment_sort == 'oldest' ? 'selected' : '' %>>Oldest</option>
+            <option value="most_liked" <%= @comment_sort == 'most_liked' ? 'selected' : '' %>>Most Liked</option>
+          </select>
+        </div>
+
+        <% if current_user&.admin? %>
+          <div class="relative">
+            <select id="comment-filter" class="block pl-3 pr-10 py-2 text-sm border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-md"
+                    onchange="window.location.href = '<%= post_path(@post) %>?comment_filter=' + this.value + '&comment_sort=<%= @comment_sort %>'">
+              <option value="approved" <%= @comment_filter == 'approved' ? 'selected' : '' %>>Approved</option>
+              <option value="pending" <%= @comment_filter == 'pending' ? 'selected' : '' %>>Pending</option>
+              <option value="rejected" <%= @comment_filter == 'rejected' ? 'selected' : '' %>>Rejected</option>
+              <option value="all" <%= @comment_filter == 'all' ? 'selected' : '' %>>All</option>
+            </select>
+          </div>
+        <% end %>
+
+        <button id="toggle-comments-btn" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none" data-action="click->comments#toggleComments">
+          <span class="show-text hidden">Show Comments</span>
+          <span class="hide-text">Hide Comments</span>
+        </button>
+      <% end %>
+    </div>
+  </div>
+
+  <% if user_signed_in? %>
+    <div class="mb-8">
+      <h3 class="text-lg font-medium text-gray-900 mb-4">Leave a comment</h3>
+      <div id="new_comment">
+        <%= render "comments/form_stimulus", post: @post, comment: Comment.new, parent: nil %>
+      </div>
+    </div>
+  <% else %>
+    <div class="bg-gray-50 rounded-lg p-6 mb-8 text-center">
+      <p class="text-gray-600">
+        Please <%= link_to "sign in", new_user_session_path, class: "text-indigo-600 hover:text-indigo-800" %> to leave a comment.
+      </p>
+    </div>
+  <% end %>
+
+  <div id="comments-container" class="" data-comments-target="commentsContainer">
+    <% if @comments.any? %>
+      <div id="post_<%= @post.id %>_comments" class="space-y-6">
+        <% @comments.each do |comment| %>
+          <%= render "comments/comment", comment: comment %>
+        <% end %>
+      </div>
+
+      <div class="mt-6">
+        <%== pagy_nav(@pagy) if @pagy.pages > 1 %>
+      </div>
+    <% else %>
+      <div class="bg-gray-50 rounded-lg p-8 text-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+        </svg>
+        <h3 class="text-lg font-medium text-gray-900">No comments yet</h3>
+        <p class="mt-2 text-sm text-gray-500">Be the first to share your thoughts!</p>
+      </div>
+    <% end %>
+  </div>
+</div>

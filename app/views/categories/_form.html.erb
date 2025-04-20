@@ -22,11 +22,45 @@
       <p class="mt-1 text-sm text-gray-500">Brief description of the category (optional)</p>
     </div>
 
-    <div>
-      <%= form.label :color, class: "block text-sm font-medium text-gray-700" %>
-      <div class="mt-1 flex items-center">
-        <div class="h-8 w-8 rounded-full mr-3 border border-gray-300" id="color-preview" style="background-color: <%= category.color || '#3B82F6' %>"></div>
-        <%= form.color_field :color, value: category.color || "#3B82F6", class: "rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500", onchange: "document.getElementById('color-preview').style.backgroundColor = this.value" %>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div>
+        <%= form.label :color, class: "block text-sm font-medium text-gray-700" %>
+        <div class="mt-1 flex items-center">
+          <div class="h-8 w-8 rounded-full mr-3 border border-gray-300" id="color-preview" style="background-color: <%= category.color || '#3B82F6' %>"></div>
+          <%= form.color_field :color, value: category.color || "#3B82F6", class: "rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500", onchange: "document.getElementById('color-preview').style.backgroundColor = this.value" %>
+        </div>
+        <p class="mt-1 text-sm text-gray-500">Choose a color for the category</p>
+      </div>
+
+      <div>
+        <%= form.label :icon, class: "block text-sm font-medium text-gray-700" %>
+        <div class="mt-1">
+          <%= form.select :icon,
+              [
+                ['📚 Books', 'books'],
+                ['💻 Technology', 'technology'],
+                ['🍔 Food', 'food'],
+                ['✈️ Travel', 'travel'],
+                ['🏋️ Fitness', 'fitness'],
+                ['🎮 Gaming', 'gaming'],
+                ['🎬 Movies', 'movies'],
+                ['🎵 Music', 'music'],
+                ['📱 Mobile', 'mobile'],
+                ['🏠 Home', 'home'],
+                ['👕 Fashion', 'fashion'],
+                ['💼 Business', 'business'],
+                ['🎨 Art', 'art'],
+                ['📰 News', 'news'],
+                ['⚽ Sports', 'sports'],
+                ['🌿 Nature', 'nature'],
+                ['🔬 Science', 'science'],
+                ['🧠 Education', 'education']
+              ],
+              { include_blank: 'Select an icon (optional)' },
+              { class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" }
+          %>
+        </div>
+        <p class="mt-1 text-sm text-gray-500">Choose an icon for the category</p>
       </div>
     </div>
 

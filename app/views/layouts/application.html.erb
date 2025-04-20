@@ -23,16 +23,20 @@
     <%= javascript_importmap_tags %>
   </head>
 
-  <body>
+  <body class="flex flex-col min-h-screen">
     <%= render "shared/header" %>
 
     <%= render "shared/flash_msg" %>
-    <main class="flex flex-grow">
-
-
+    <main class="flex-grow">
       <%= yield %>
     </main>
 
     <%= render "shared/footer" %>
+
+    <!-- Modal container for Turbo Frame -->
+    <turbo-frame id="modal"></turbo-frame>
+
+    <!-- Stimulus controller for modals -->
+    <div id="modal-backdrop" class="hidden fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity z-40"></div>
   </body>
 </html>

@@ -19,7 +19,15 @@
             <div class="px-4 py-4 sm:px-6">
               <div class="flex items-center justify-between">
                 <div class="flex items-center">
-                  <div class="h-8 w-8 rounded-full" style="background-color: <%= category.color %>"></div>
+                  <div class="h-10 w-10 rounded-full flex items-center justify-center text-white" style="background-color: <%= category.color %>">
+                    <% if category.respond_to?(:icon) && category.icon.present? && category.icon_emoji %>
+                      <span class="text-lg"><%= category.icon_emoji %></span>
+                    <% else %>
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M17.707 9.293a1 1 0 010 1.414l-7 7a1 1 0 01-1.414 0l-7-7A.997.997 0 012 10V5a3 3 0 013-3h5c.256 0 .512.098.707.293l7 7zM5 6a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+                      </svg>
+                    <% end %>
+                  </div>
                   <p class="ml-3 text-lg font-medium text-gray-900"><%= category.name %></p>
                 </div>
                 <div class="flex items-center">
@@ -51,10 +59,10 @@
           <% end %>
         </li>
       <% end %>
-      
+
       <% if @categories.empty? %>
         <li class="px-4 py-6 sm:px-6 text-center text-gray-500">
-          No categories found. 
+          No categories found.
           <% if current_user&.admin? %>
             <%= link_to "Create the first category", new_category_path, class: "text-indigo-600 hover:text-indigo-900" %>
           <% end %>

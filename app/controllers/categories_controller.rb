@@ -1,7 +1,8 @@
 class CategoriesController < ApplicationController
   skip_before_action :authenticate_user!, only: [:index, :show]
   before_action :set_category, only: [:show, :edit, :update, :destroy]
-  before_action :authorize_admin!, only: [:new, :create, :edit, :update, :destroy]
+  before_action :authenticate_user!, except: [:index, :show]
+  before_action :authorize_admin!, only: [:edit, :update, :destroy]
 
   # GET /categories
   def index
@@ -56,9 +57,9 @@ class CategoriesController < ApplicationController
 
     # Only allow a list of trusted parameters through.
     def category_params
-      params.require(:category).permit(:name, :description, :color)
+      params.require(:category).permit(:name, :description, :color, :icon)
     end
-    
+
     # Only allow admins to manage categories
     def authorize_admin!
       unless current_user&.admin?

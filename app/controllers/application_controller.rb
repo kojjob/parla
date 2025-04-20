@@ -19,7 +19,23 @@ class ApplicationController < ActionController::Base
   # Devise authentication
   before_action :authenticate_user!
 
+  # Ensure Warden is available
+  before_action :ensure_warden_available
+
   protected
+
+  # Ensure Warden is available in the request environment
+  def ensure_warden_available
+    begin
+      unless request.env['warden']
+        request.env['warden'] = Warden::Proxy.new(request.env, self)
+      end
+    rescue => e
+      # Log the error but don't crash the application
+      Rails.logger.error("Error ensuring Warden is available: #{e.message}")
+      # Continue with normal operation
+    end
+  end
 
   # Helper method to authorize a user for post actions
   def authorize_user_for_post!(post)

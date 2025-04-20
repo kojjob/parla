@@ -1,0 +1,25 @@
+<div class="max-w-2xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+  <div class="bg-white shadow rounded-lg p-6">
+    <div class="mb-6">
+      <h1 class="text-xl font-bold text-gray-900">Report Comment</h1>
+      <p class="mt-1 text-sm text-gray-500">Please provide details about why you're reporting this comment.</p>
+    </div>
+    
+    <div class="mb-6 p-4 bg-gray-50 rounded-md">
+      <h2 class="text-sm font-medium text-gray-700 mb-2">Comment by <%= @comment.user.name %></h2>
+      <div class="text-sm text-gray-600">
+        <% if @comment.content.present? %>
+          <p><%= @comment.content %></p>
+        <% elsif @comment.has_rich_content? %>
+          <%= @comment.rich_content %>
+        <% end %>
+        
+        <% if @comment.has_attachment? %>
+          <p class="mt-1 text-xs text-gray-500">[This comment includes an attachment]</p>
+        <% end %>
+      </div>
+    </div>
+    
+    <%= render "form", comment: @comment, report: @report %>
+  </div>
+</div>

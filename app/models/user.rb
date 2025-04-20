@@ -6,6 +6,8 @@ class User < ApplicationRecord
 
   # Associations
   has_many :posts, dependent: :nullify
+  has_many :comments, dependent: :destroy
+  has_many :notifications, foreign_key: :recipient_id, dependent: :destroy
   has_one_attached :avatar
 
   # Roles

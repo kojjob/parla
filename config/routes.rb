@@ -2,7 +2,31 @@ Rails.application.routes.draw do
   devise_for :users
 
   resources :categories
-  resources :posts
+  resources :posts do
+    collection do
+      get :tags
+    end
+    resources :comments, only: [:create]
+  end
+
+  resources :comments, except: [:index, :new, :create] do
+    member do
+      post :approve
+      post :reject
+      post :like
+    end
+    resources :reports, only: [:new, :create], controller: 'comment_reports'
+  end
+
+  # Notifications
+  resources :notifications, only: [:index, :show] do
+    member do
+      post :mark_as_read
+    end
+    collection do
+      post :mark_all_as_read
+    end
+  end
   resources :products
 
   # Filter posts by category

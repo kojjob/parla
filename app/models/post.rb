@@ -4,6 +4,7 @@ class Post < ApplicationRecord
     has_rich_text :body
     belongs_to :user, optional: true
     belongs_to :category, optional: true, counter_cache: true
+    has_many :comments, dependent: :destroy
 
     # Basic scopes
     scope :by_category, ->(category_id) { where(category_id: category_id) if category_id.present? }
@@ -21,7 +22,9 @@ class Post < ApplicationRecord
       .distinct
     }
 
-    scope :featured_content, -> { recent.with_attached_cover_image.limit(5) }
+    # Simulate featured posts by selecting posts with cover images
+    scope :featured, -> { with_attached_cover_image.recent }
+    scope :featured_content, -> { featured.limit(5) }
     scope :by_category_with_limit, ->(category_id, limit = 4) { where(category_id: category_id).recent.limit(limit) }
 
     # Callbacks
@@ -34,7 +37,9 @@ class Post < ApplicationRecord
         user
     end
 
-    def tags_list
+    # This method is deprecated and will be removed in the future
+    # Use the new tags_list method below instead
+    def tags_list_with_struct
         return [] if tags.blank?
         tags.split(',').map(&:strip).map do |tag_name|
             # Using a simple Struct instead of OpenStruct
@@ -78,8 +83,102 @@ class Post < ApplicationRecord
     end
 
     def comments_count
-        # This is a placeholder method for the comments count
-        # Replace with actual implementation when you add comments
-        0
+        # Return the actual comments count from the database
+        # This will be automatically updated by the counter cache
+        comments.count
+    end
+
+    # Get approved comments only
+    def approved_comments
+        comments.approved.root_comments.includes(:user, :replies)
+    end
+
+    # Extract tags from the tags string
+    def tags_list
+        return [] unless self.tags.present?
+
+        # Split the tags string by commas and clean up each tag
+        self.tags.split(',').map(&:strip).reject(&:blank?)
+    end
+
+    # Find related posts based on category, tags, and title similarity
+    def related_posts(limit = 3)
+        # Get post IDs for related posts
+        related_ids = find_related_post_ids(limit)
+
+        # Return an ActiveRecord relation with the related post IDs
+        Post.where(id: related_ids)
+    end
+
+    # Helper method to find related post IDs
+    def find_related_post_ids(limit = 3)
+        # Start with posts in the same category
+        related = Post.where.not(id: self.id)
+                      .where(category_id: self.category_id)
+                      .published
+
+        related_ids = related.limit(limit).pluck(:id)
+
+        # If we don't have enough posts from the same category, add posts with similar tags
+        if related_ids.size < limit && self.tags.present?
+            # Extract tags from the current post
+            tag_list = self.tags_list
+
+            # Find posts that have any of these tags (excluding already found posts and self)
+            tag_conditions = tag_list.map { |tag| "posts.tags LIKE '%#{tag}%'" }.join(' OR ')
+
+            tag_related_ids = Post.where.not(id: self.id)
+                                 .where.not(id: related_ids)
+                                 .where(tag_conditions)
+                                 .published
+                                 .limit(limit - related_ids.size)
+                                 .pluck(:id)
+
+            related_ids.concat(tag_related_ids)
+        end
+
+        # If we still don't have enough posts, add recent posts
+        if related_ids.size < limit
+            recent_post_ids = Post.where.not(id: self.id)
+                                 .where.not(id: related_ids)
+                                 .published
+                                 .order(created_at: :desc)
+                                 .limit(limit - related_ids.size)
+                                 .pluck(:id)
+
+            related_ids.concat(recent_post_ids)
+        end
+
+        # Return the related post IDs
+        related_ids.uniq.first(limit)
+    end
+
+    # Get the next post (newer post)
+    def next_post
+        Post.where("created_at > ?", self.created_at)
+            .order(created_at: :asc)
+            .first
+    end
+
+    # Get the previous post (older post)
+    def previous_post
+        Post.where("created_at < ?", self.created_at)
+            .order(created_at: :desc)
+            .first
+    end
+
+    # Class method to get popular tags
+    def self.popular_tags(limit = 10)
+        # Get all tags from published posts
+        all_tags = published.where.not(tags: [nil, '']).pluck(:tags)
+
+        # Split and flatten tags
+        tag_array = all_tags.flat_map { |tags| tags.split(',').map(&:strip) }
+
+        # Count occurrences of each tag
+        tag_counts = tag_array.each_with_object(Hash.new(0)) { |tag, counts| counts[tag] += 1 }
+
+        # Sort by count (descending) and take the top ones
+        tag_counts.sort_by { |_tag, count| -count }.first(limit).map(&:first)
     end
 end

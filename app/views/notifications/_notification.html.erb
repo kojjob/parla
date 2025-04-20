@@ -1,0 +1,53 @@
+<div id="<%= dom_id(notification) %>" class="p-4 <%= notification.read? ? 'bg-white' : 'bg-blue-50' %> hover:bg-gray-50 transition-colors">
+  <div class="flex items-start">
+    <div class="flex-shrink-0 mr-4">
+      <% if notification.actor.avatar.attached? %>
+        <%= image_tag notification.actor.avatar, class: "h-10 w-10 rounded-full object-cover" %>
+      <% else %>
+        <div class="h-10 w-10 rounded-full bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center text-white">
+          <% if notification.actor.name.present? %>
+            <span class="text-sm font-medium"><%= notification.actor.name[0].upcase %></span>
+          <% else %>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+    
+    <div class="flex-1">
+      <div class="flex items-center justify-between">
+        <p class="text-sm text-gray-900">
+          <span class="font-medium"><%= notification.actor.name %></span>
+          <%= notification_message(notification) %>
+        </p>
+        <span class="text-xs text-gray-500"><%= time_ago_in_words(notification.created_at) %> ago</span>
+      </div>
+      
+      <% if notification.notifiable_type == "Comment" && notification.notifiable.present? %>
+        <div class="mt-2 text-sm text-gray-600 bg-gray-50 p-3 rounded-md">
+          <% if notification.notifiable.content.present? %>
+            <%= truncate(notification.notifiable.content, length: 100) %>
+          <% elsif notification.notifiable.has_rich_content? %>
+            <%= truncate(strip_tags(notification.notifiable.rich_content.to_plain_text), length: 100) %>
+          <% elsif notification.notifiable.has_attachment? %>
+            <span class="text-gray-500">[Contains an attachment]</span>
+          <% end %>
+        </div>
+      <% end %>
+      
+      <div class="mt-2 flex space-x-3">
+        <%= link_to notification_path(notification), class: "text-xs text-indigo-600 hover:text-indigo-800" do %>
+          View
+        <% end %>
+        
+        <% unless notification.read? %>
+          <%= button_to mark_as_read_notification_path(notification), method: :post, class: "text-xs text-gray-500 hover:text-gray-700" do %>
+            Mark as read
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

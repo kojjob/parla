@@ -23,5 +23,11 @@ module Parla
     #
     # config.time_zone = "Central Time (US & Canada)"
     # config.eager_load_paths << Rails.root.join("extras")
+
+    # Ensure Warden is properly loaded in the middleware stack
+    config.middleware.use Warden::Manager do |manager|
+      manager.default_strategies(scope: :user).unshift :database_authenticatable
+      manager.failure_app = Devise::FailureApp
+    end
   end
 end

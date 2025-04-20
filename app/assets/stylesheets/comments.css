@@ -1,0 +1,91 @@
+/* Comment form styles */
+.content-type-btn.active {
+  background-color: rgba(79, 70, 229, 0.1);
+  color: rgb(79, 70, 229);
+}
+
+/* Comment container styles */
+.comment-container {
+  transition: background-color 0.2s ease;
+}
+
+.comment-container:hover {
+  background-color: rgba(249, 250, 251, 0.5);
+}
+
+/* Reply container styles */
+.reply-container {
+  transition: background-color 0.2s ease;
+}
+
+.reply-container:hover {
+  background-color: rgba(249, 250, 251, 0.5);
+}
+
+/* Emoji picker styles */
+.emoji-pick-btn {
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.emoji-pick-btn:hover {
+  background-color: rgba(243, 244, 246, 1);
+}
+
+.emoji-pick-btn:active {
+  transform: scale(0.9);
+}
+
+.emoji-btn {
+  transition: all 0.2s ease;
+}
+
+.emoji-btn:active {
+  transform: scale(0.9);
+}
+
+.emoji-btn.active {
+  background-color: rgba(79, 70, 229, 0.1);
+  color: rgb(79, 70, 229);
+}
+
+/* Animation for new comments */
+@keyframes fadeIn {
+  0% { opacity: 0; transform: translateY(-10px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+.comment-fade-in {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+/* Line clamp for long comments */
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Attachment styles */
+.comment-attachment {
+  border-radius: 0.5rem;
+  overflow: hidden;
+  max-width: 100%;
+}
+
+.comment-attachment img,
+.comment-attachment video {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Like button animation */
+@keyframes likeAnimation {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+.like-animation {
+  animation: likeAnimation 0.3s ease-in-out;
+}

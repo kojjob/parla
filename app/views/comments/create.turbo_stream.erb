@@ -1,0 +1,23 @@
+<% if @comment.parent_id.nil? %>
+  <%= turbo_stream.prepend "post_#{@post.id}_comments" do %>
+    <%= render "comments/comment", comment: @comment %>
+  <% end %>
+<% else %>
+  <%= turbo_stream.append "comment_#{@comment.parent_id}" do %>
+    <%= render "comments/reply", comment: @comment %>
+  <% end %>
+<% end %>
+
+<%= turbo_stream.update "new_comment_form" do %>
+  <%= render "comments/form", post: @post, comment: Comment.new, parent: nil %>
+<% end %>
+
+<%= turbo_stream.update "comments-count", @post.comments.approved.count %>
+
+<% if @comment.parent_id.present? %>
+  <%= turbo_stream.replace "reply-form-#{@comment.parent_id}" do %>
+    <div id="reply-form-<%= @comment.parent_id %>" class="hidden mt-4">
+      <%= render "comments/form", post: @post, comment: Comment.new, parent: @comment.parent %>
+    </div>
+  <% end %>
+<% end %>

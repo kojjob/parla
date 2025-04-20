@@ -60,8 +60,57 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_20_000003) do
     t.integer "posts_count", default: 0
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "icon"
+    t.bigint "user_id"
     t.index ["name"], name: "index_categories_on_name", unique: true
     t.index ["slug"], name: "index_categories_on_slug", unique: true
+    t.index ["user_id"], name: "index_categories_on_user_id"
+  end
+
+  create_table "comment_reports", force: :cascade do |t|
+    t.bigint "comment_id", null: false
+    t.bigint "user_id", null: false
+    t.string "reason", null: false
+    t.text "details"
+    t.integer "status", default: 0
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["comment_id", "user_id"], name: "index_comment_reports_on_comment_id_and_user_id", unique: true
+    t.index ["comment_id"], name: "index_comment_reports_on_comment_id"
+    t.index ["user_id"], name: "index_comment_reports_on_user_id"
+  end
+
+  create_table "comments", force: :cascade do |t|
+    t.text "content"
+    t.bigint "post_id", null: false
+    t.bigint "user_id", null: false
+    t.bigint "parent_id"
+    t.integer "status", default: 0
+    t.integer "likes_count", default: 0
+    t.integer "replies_count", default: 0
+    t.string "content_type", default: "text"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["content_type"], name: "index_comments_on_content_type"
+    t.index ["parent_id"], name: "index_comments_on_parent_id"
+    t.index ["post_id"], name: "index_comments_on_post_id"
+    t.index ["status"], name: "index_comments_on_status"
+    t.index ["user_id"], name: "index_comments_on_user_id"
+  end
+
+  create_table "notifications", force: :cascade do |t|
+    t.bigint "recipient_id", null: false
+    t.bigint "actor_id", null: false
+    t.string "action", null: false
+    t.string "notifiable_type", null: false
+    t.bigint "notifiable_id", null: false
+    t.boolean "read", default: false, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["actor_id"], name: "index_notifications_on_actor_id"
+    t.index ["notifiable_type", "notifiable_id"], name: "index_notifications_on_notifiable"
+    t.index ["recipient_id", "read"], name: "index_notifications_on_recipient_id_and_read"
+    t.index ["recipient_id"], name: "index_notifications_on_recipient_id"
   end
 
   create_table "posts", force: :cascade do |t|
@@ -74,6 +123,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_20_000003) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.bigint "category_id"
+    t.boolean "featured", default: false
+    t.integer "comments_count", default: 0
     t.index ["category_id"], name: "index_posts_on_category_id"
   end
 
@@ -159,5 +210,13 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_20_000003) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "categories", "users"
+  add_foreign_key "comment_reports", "comments"
+  add_foreign_key "comment_reports", "users"
+  add_foreign_key "comments", "comments", column: "parent_id"
+  add_foreign_key "comments", "posts"
+  add_foreign_key "comments", "users"
+  add_foreign_key "notifications", "users", column: "actor_id"
+  add_foreign_key "notifications", "users", column: "recipient_id"
   add_foreign_key "posts", "categories"
 end
